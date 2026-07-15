@@ -91,6 +91,25 @@
     <div><h4>📦 开源</h4>Apache 2.0</div>
   </div>
 
+  <!-- Demo -->
+  <div class="section">
+    <h3 style="color:#58a6ff;margin-bottom:10px">🎧 在线试听</h3>
+    <p style="color:#8b949e;margin-bottom:16px">不用注册，输入文字直接听</p>
+    <textarea id="demo-text" rows="3" style="width:100%;max-width:500px;background:#161b22;border:1px solid #30363d;color:#c9d1d9;padding:12px;border-radius:6px;font-size:0.95em;resize:vertical" placeholder="输入要合成的文字...">你好，欢迎使用TTSKit语音合成服务。</textarea>
+    <br>
+    <select id="demo-voice" style="margin:8px 0;background:#161b22;border:1px solid #30363d;color:#c9d1d9;padding:8px;border-radius:6px">
+      <option value="default">默认女声</option>
+      <option value="male-1">标准男声</option>
+      <option value="sichuan">四川话</option>
+      <option value="cantonese">粤语</option>
+    </select>
+    <br>
+    <button class="btn" onclick="demoSpeak()" id="demo-btn">🔊 生成播放</button>
+    <span id="demo-status" style="color:#8b949e;margin-left:12px;font-size:0.85em"></span>
+    <br>
+    <audio id="demo-player" controls style="margin-top:12px;width:100%;max-width:400px;display:none"></audio>
+  </div>
+
   <!-- Docs -->
   <div class="section" id="docs">
     <h3 style="color:#58a6ff;margin-bottom:20px">快速开始</h3>
@@ -143,6 +162,39 @@ async function login() {
     <p>剩余字数: ${d.credits}</p>`;
   } else {
     el.innerHTML = `<p style="color:#f85149">${d.detail}</p>`;
+  }
+async function demoSpeak() {
+  const btn = document.getElementById('demo-btn');
+  const status = document.getElementById('demo-status');
+  const player = document.getElementById('demo-player');
+  const text = document.getElementById('demo-text').value;
+  
+  btn.disabled = true; status.innerText = '提交中...'; player.style.display = 'none';
+  
+  try {
+    const r = await fetch('/v1/audio/speech', {
+      method: 'POST', headers: {'Content-Type':'application/json','Authorization':'Bearer ttskit-demo'},
+      body: JSON.stringify({input: text, voice: document.getElementById('demo-voice').value})
+    });
+    if (!r.ok) throw new Error((await r.json()).detail || '生成失败');
+    const {job_id} = await r.json();
+    status.innerText = '生成中...';
+    
+    for (let i=0; i<40; i++) {
+      await new Promise(ok => setTimeout(ok, 2000));
+      const pr = await fetch('/v1/audio/speech/'+job_id);
+      if (pr.ok && pr.headers.get('content-type').includes('audio')) {
+        const blob = await pr.blob();
+        player.src = URL.createObjectURL(blob);
+        player.style.display = 'block'; player.play();
+        status.innerText = '✅ 播放中';
+        btn.disabled = false; return;
+      }
+    }
+    throw new Error('超时');
+  } catch(e) {
+    status.innerText = '❌ '+e.message;
+    btn.disabled = false;
   }
 }
 </script>
