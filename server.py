@@ -11,7 +11,7 @@ DB = "ttskit.db"
 
 def init_db():
     db = sqlite3.connect(DB)
-    db.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, email TEXT UNIQUE, password_hash TEXT, api_key TEXT UNIQUE, credits INTEGER DEFAULT 1000, created_at TEXT)")
+    db.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, email TEXT UNIQUE, password_hash TEXT, api_key TEXT UNIQUE, credits INTEGER DEFAULT 5000, created_at TEXT)")
     db.execute("CREATE TABLE IF NOT EXISTS usage (id INTEGER PRIMARY KEY, api_key TEXT, chars INTEGER, endpoint TEXT, created_at TEXT)")
     db.execute("CREATE TABLE IF NOT EXISTS orders (id INTEGER PRIMARY KEY, api_key TEXT, amount_cents INTEGER, status TEXT, created_at TEXT)")
     db.commit(); db.close()
@@ -51,9 +51,9 @@ def register(req: RegisterRequest):
     if db_exec("SELECT id FROM users WHERE email=?", (req.email,), fetch=True):
         raise HTTPException(400, "邮箱已注册")
     api_key = "ttskit-" + uuid.uuid4().hex[:24]
-    db_exec("INSERT INTO users (email, password_hash, api_key, credits, created_at) VALUES (?,?,?,1000,?)",
+    db_exec("INSERT INTO users (email, password_hash, api_key, credits, created_at) VALUES (?,?,?,5000,?)",
             (req.email, hash_pw(req.password), api_key, datetime.now().isoformat()))
-    return {"api_key": api_key, "credits": 1000, "message": "注册成功！获赠 1000 免费字数"}
+    return {"api_key": api_key, "credits": 5000, "message": "注册成功！获赠 5000 免费字数"}
 
 @app.post("/api/login")
 def login(req: LoginRequest):
@@ -117,10 +117,10 @@ def voices():
 @app.get("/api/pricing")
 def pricing():
     return {"plans": [
-        {"name": "免费", "chars": 1000, "price": 0},
-        {"name": "入门", "chars": 100000, "price": 49},
-        {"name": "专业", "chars": 500000, "price": 199},
-        {"name": "企业", "chars": 2000000, "price": 699},
+        {"name": "免费", "chars": 5000, "price": 0},
+        {"name": "入门", "chars": 100000, "price": 9.9},
+        {"name": "专业", "chars": 500000, "price": 49},
+        {"name": "企业", "chars": 2000000, "price": 199},
     ]}
 
 if __name__ == "__main__":
