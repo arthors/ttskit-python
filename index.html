@@ -146,8 +146,20 @@ function demoSpeak() {
   var text = document.getElementById('demo-text').value;
   
   btn.disabled = true;
-  st.innerText = '生成中...';
+  var startTime = Date.now();
+  st.innerText = '生成中...（预计10秒）';
   player.style.display = 'none';
+  
+  var timer = setInterval(function() {
+    var elapsed = Math.round((Date.now() - startTime) / 1000);
+    st.innerText = '生成中... ' + elapsed + '秒';
+  }, 1000);
+  
+  player.onloadeddata = function() {
+    clearInterval(timer);
+    st.innerText = '✅ 播放中';
+    btn.disabled = false;
+  };
   
   player.src = '/v1/audio/speech?input=' + encodeURIComponent(text);
   player.style.display = 'block';
