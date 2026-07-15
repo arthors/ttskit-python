@@ -74,10 +74,17 @@ def main():
                     wav = base64.b64decode(resp['wav_base64'])
                     with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as f:
                         f.write(wav); tmp = f.name
-                    subprocess.run(["sshpass", "-p", HK_PW, "scp", "-o", "StrictHostKeyChecking=no",
-                                   tmp, f"root@{HK}:{HK_WAV}/{jid}.wav"], capture_output=True, timeout=20)
+                    # Upload to .tmp first with retry
+                    for retry in range(3):
+                        r = subprocess.run(["sshpass", "-p", HK_PW, "scp", "-o", "StrictHostKeyChecking=no",
+                                           "-o", "ConnectTimeout=10", tmp,
+                                           f"root@{HK}:{HK_WAV}/{jid}.wav.tmp"],
+                                          capture_output=True, timeout=60)
+                        if r.returncode == 0:
+                            break
+                        time.sleep(2)
+                    hk(f"mv {HK_WAV}/{jid}.wav.tmp {HK_WAV}/{jid}.wav && echo d > {HK_JOBS}/{jid}.status")
                     os.unlink(tmp)
-                    hk(f"echo d > {HK_JOBS}/{jid}.status")
                     print(f"[{jid}] DONE")
                     break
                 elif resp.get('status') == 'err':
