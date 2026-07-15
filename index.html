@@ -6,47 +6,35 @@
 <title>TTSKit — 最便宜的中文 TTS API</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; line-height: 1.6; }
+  body { font-family: -apple-system, sans-serif; background: #0d1117; color: #c9d1d9; line-height: 1.6; }
   .container { max-width: 800px; margin: 0 auto; padding: 60px 20px; }
   h1 { font-size: 3em; color: #58a6ff; margin-bottom: 10px; }
   h2 { font-size: 1.3em; color: #8b949e; font-weight: 400; margin-bottom: 40px; }
-  .price-box { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 30px; margin: 30px 0; text-align: center; }
-  .price-box h3 { color: #3fb950; font-size: 3em; }
-  .price-box .unit { color: #8b949e; font-size: 0.8em; }
-  .compare { display: flex; gap: 16px; margin: 20px 0; flex-wrap: wrap; }
-  .compare div { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; flex: 1; min-width: 120px; text-align: center; }
-  .compare .name { color: #8b949e; font-size: 0.85em; }
-  .compare .val { font-size: 1.4em; color: #f85149; }
-  .compare .us { border-color: #3fb950; }
-  .compare .us .val { color: #3fb950; }
-  pre { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; overflow-x: auto; margin: 20px 0; font-size: 0.85em; }
-  code { font-family: 'SF Mono', 'Fira Code', monospace; }
-  a { color: #58a6ff; text-decoration: none; }
-  .btn { display: inline-block; background: #238636; color: #fff; border: none; padding: 12px 30px; border-radius: 6px; font-size: 1em; cursor: pointer; text-decoration: none; margin: 8px; }
-  .btn:hover { background: #2ea043; }
-  .btn-outline { background: transparent; border: 1px solid #30363d; color: #c9d1d9; }
-  .btn-outline:hover { background: #21262d; }
-  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 30px 0; }
-  .features div { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
-  .features h4 { color: #58a6ff; margin-bottom: 8px; }
   .section { margin: 50px 0; }
-  input { background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; padding: 10px 16px; border-radius: 6px; width: 100%; max-width: 320px; margin: 8px 4px; font-size: 1em; }
-  input:focus { border-color: #58a6ff; outline: none; }
-  .result { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin: 16px 0; display: none; word-break: break-all; }
-  .result code { color: #3fb950; }
-  .footer { text-align: center; color: #484f58; font-size: 0.8em; margin-top: 60px; padding: 20px 0; border-top: 1px solid #30363d; }
-  .nav { display: flex; gap: 16px; justify-content: flex-end; margin-bottom: 20px; }
-  .nav a { color: #8b949e; }
+  .compare { display: flex; gap: 16px; margin: 20px 0; flex-wrap: wrap; }
+  .compare div { background: #161b22; border:1px solid #30363d; border-radius:8px; padding:16px; flex:1; min-width:120px; text-align:center; }
+  .compare .name { color:#8b949e; font-size:0.85em; }
+  .compare .val { font-size:1.4em; color:#f85149; }
+  .compare .us { border-color:#3fb950; }
+  .compare .us .val { color:#3fb950; }
+  .price-box { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:30px; margin:30px 0; text-align:center; }
+  .features { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin:30px 0; }
+  .features div { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:20px; }
+  .features h4 { color:#58a6ff; margin-bottom:8px; }
+  pre { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:20px; overflow-x:auto; margin:20px 0; font-size:0.85em; }
+  a { color:#58a6ff; text-decoration:none; }
+  .btn { display:inline-block; background:#238636; color:#fff; border:none; padding:12px 30px; border-radius:6px; font-size:1em; cursor:pointer; text-decoration:none; margin:8px; }
+  .btn:hover { background:#2ea043; }
+  .btn-outline { background:transparent; border:1px solid #30363d; color:#c9d1d9; }
+  input, textarea, select { background:#0d1117; border:1px solid #30363d; color:#c9d1d9; padding:10px 16px; border-radius:6px; font-size:1em; }
+  input:focus, textarea:focus { border-color:#58a6ff; outline:none; }
+  .result { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:16px; margin:16px 0; display:none; word-break:break-all; }
+  .result code { color:#3fb950; }
+  .footer { text-align:center; color:#484f58; font-size:0.8em; margin-top:60px; padding:20px 0; border-top:1px solid #30363d; }
 </style>
 </head>
 <body>
 <div class="container">
-  <div class="nav">
-    <a href="#pricing">定价</a>
-    <a href="#docs">文档</a>
-    <a href="https://github.com/arthors/ttskit-python">GitHub</a>
-  </div>
-
   <h1>TTSKit</h1>
   <h2>最便宜的中文文本转语音 API — 基于 CosyVoice 3.0</h2>
 
@@ -55,15 +43,14 @@
     <h3>免费开始</h3>
     <p style="color:#8b949e;margin:10px 0">注册即送 5000 免费字数</p>
     <input type="email" id="reg-email" placeholder="邮箱">
-    <input type="password" id="reg-pw" placeholder="密码" style="margin-bottom:12px">
-    <br>
+    <input type="password" id="reg-pw" placeholder="密码" style="margin-bottom:12px"><br>
     <button class="btn" onclick="register()">注册</button>
     <button class="btn btn-outline" onclick="login()">登录</button>
-    <div class="result" id="auth-result" style="text-align:left"></div>
+    <div class="result" id="auth-result"></div>
   </div>
 
   <!-- Pricing -->
-  <div class="section" id="pricing">
+  <div class="section">
     <h3 style="color:#58a6ff;margin-bottom:20px">定价</h3>
     <div class="compare">
       <div class="us"><div class="name">TTSKit 免费</div><div class="val">¥0</div><div style="color:#8b949e;font-size:0.8em">5000 字/月</div></div>
@@ -78,14 +65,14 @@
     <div><div class="name">ElevenLabs</div><div class="val">¥8/千字</div></div>
     <div><div class="name">Fish Audio</div><div class="val">¥1.5/千字</div></div>
     <div><div class="name">MiniMax</div><div class="val">¥2/千字</div></div>
-    <div class="us"><div class="name">TTSKit ⬅</div><div class="val">¥0.5/千字</div></div>
+    <div class="us"><div class="name">TTSKit</div><div class="val">¥0.5/千字</div></div>
   </div>
 
   <!-- Features -->
   <div class="features">
     <div><h4>🇨🇳 中文原生</h4>普通话 + 18+ 方言</div>
     <div><h4>🎤 语音克隆</h4>10秒音频即可克隆</div>
-    <div><h4>⚡ 低延迟</h4>流式生成，秒级响应</div>
+    <div><h4>⚡ 低延迟</h4>10秒内出音频</div>
     <div><h4>🔌 OpenAI 兼容</h4>一行代码切换</div>
     <div><h4>🆓 免费额度</h4>每月 5000 字</div>
     <div><h4>📦 开源</h4>Apache 2.0</div>
@@ -95,31 +82,22 @@
   <div class="section">
     <h3 style="color:#58a6ff;margin-bottom:10px">🎧 在线试听</h3>
     <p style="color:#8b949e;margin-bottom:16px">不用注册，输入文字直接听</p>
-    <textarea id="demo-text" rows="3" style="width:100%;max-width:500px;background:#161b22;border:1px solid #30363d;color:#c9d1d9;padding:12px;border-radius:6px;font-size:0.95em;resize:vertical" placeholder="输入要合成的文字...">你好，欢迎使用TTSKit语音合成服务。</textarea>
-    <br>
-    <select id="demo-voice" style="margin:8px 0;background:#161b22;border:1px solid #30363d;color:#c9d1d9;padding:8px;border-radius:6px">
-      <option value="default">默认女声</option>
-      <option value="male-1">标准男声</option>
-      <option value="sichuan">四川话</option>
-      <option value="cantonese">粤语</option>
-    </select>
-    <br>
+    <textarea id="demo-text" rows="3" style="width:100%;max-width:500px" placeholder="输入要合成的文字...">你好，欢迎使用TTSKit语音合成服务。</textarea><br>
     <button class="btn" onclick="demoSpeak()" id="demo-btn">🔊 生成播放</button>
-    <span id="demo-status" style="color:#8b949e;margin-left:12px;font-size:0.85em"></span>
-    <br>
+    <span id="demo-status" style="color:#8b949e;margin-left:12px;font-size:0.85em"></span><br>
     <audio id="demo-player" controls style="margin-top:12px;width:100%;max-width:400px;display:none"></audio>
   </div>
 
   <!-- Docs -->
-  <div class="section" id="docs">
+  <div class="section">
     <h3 style="color:#58a6ff;margin-bottom:20px">快速开始</h3>
     <pre><code>pip install ttskit</code></pre>
     <pre><code>from ttskit import TTSKit
 tts = TTSKit(api_key="你的APIKey")
 tts.speak("你好世界", output="hello.wav")</code></pre>
-    <p style="margin-top:10px">
-      <a href="https://github.com/arthors/ttskit-python" class="btn">GitHub →</a>
-      <a href="/docs" style="color:#8b949e;margin-left:12px">完整 API 文档</a>
+    <p>
+      <a href="https://github.com/arthors/ttskit-python" class="btn">GitHub</a>
+      <a href="/docs" style="color:#8b949e;margin-left:12px">API 文档</a>
     </p>
   </div>
 
@@ -138,11 +116,9 @@ async function register() {
   const el = document.getElementById('auth-result');
   el.style.display = 'block';
   if (r.ok) {
-    el.innerHTML = `<p style="color:#3fb950">✅ ${d.message}</p>
-    <p>API Key: <code>${d.api_key}</code></p>
-    <p>剩余字数: ${d.credits}</p>`;
+    el.innerHTML = '<p style="color:#3fb950">✅ '+d.message+'</p><p>API Key: <code>'+d.api_key+'</code></p><p>剩余字数: '+d.credits+'</p>';
   } else {
-    el.innerHTML = `<p style="color:#f85149">${d.detail}</p>`;
+    el.innerHTML = '<p style="color:#f85149">'+d.detail+'</p>';
   }
 }
 
@@ -157,34 +133,34 @@ async function login() {
   const el = document.getElementById('auth-result');
   el.style.display = 'block';
   if (r.ok) {
-    el.innerHTML = `<p style="color:#3fb950">✅ 登录成功</p>
-    <p>API Key: <code>${d.api_key}</code></p>
-    <p>剩余字数: ${d.credits}</p>`;
+    el.innerHTML = '<p style="color:#3fb950">✅ 登录成功</p><p>API Key: <code>'+d.api_key+'</code></p><p>剩余字数: '+d.credits+'</p>';
   } else {
-    el.innerHTML = `<p style="color:#f85149">${d.detail}</p>`;
+    el.innerHTML = '<p style="color:#f85149">'+d.detail+'</p>';
   }
-async function demoSpeak() {
-  const btn = document.getElementById('demo-btn');
-  const status = document.getElementById('demo-status');
-  const player = document.getElementById('demo-player');
-  const text = document.getElementById('demo-text').value;
+}
+
+function demoSpeak() {
+  var btn = document.getElementById('demo-btn');
+  var st = document.getElementById('demo-status');
+  var player = document.getElementById('demo-player');
+  var text = document.getElementById('demo-text').value;
   
-  btn.disabled = true; status.innerText = '生成中...'; player.style.display = 'none';
+  btn.disabled = true;
+  st.innerText = '生成中...';
+  player.style.display = 'none';
   
-  try {
-    const r = await fetch('/v1/audio/speech', {
-      method: 'POST', headers: {'Content-Type':'application/json','Authorization':'Bearer ttskit-demo'},
-      body: JSON.stringify({input: text, voice: document.getElementById('demo-voice').value})
-    });
-    if (!r.ok) throw new Error((await r.json()).detail || '生成失败');
-    const blob = await r.blob();
-    player.src = URL.createObjectURL(blob);
-    player.style.display = 'block'; player.play();
-    status.innerText = '✅ 播放中';
-  } catch(e) {
-    status.innerText = '❌ '+e.message;
-  }
-  btn.disabled = false;
+  player.src = '/v1/audio/speech?input=' + encodeURIComponent(text);
+  player.style.display = 'block';
+  
+  player.onloadeddata = function() {
+    st.innerText = '✅ 播放中';
+    btn.disabled = false;
+  };
+  player.onerror = function() {
+    st.innerText = '❌ 生成失败';
+    btn.disabled = false;
+  };
+  player.load();
 }
 </script>
 </body>

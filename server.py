@@ -74,12 +74,19 @@ def usage(api_key: str = Header(alias="Authorization")):
     total = db_exec("SELECT SUM(chars) FROM usage WHERE api_key=?", (key,), fetch=True)
     return {"credits_remaining": user[2], "total_chars_used": total[0][0] or 0}
 
+@app.get("/v1/audio/speech")
+def speak_get(input: str = "hello", voice: str = "default"):
+    """Demo endpoint — GET returns WAV directly"""
+    return _speak("ttskit-demo", input)
+
 @app.post("/v1/audio/speech")
-def speak(req: SpeakRequest, api_key: str = Header(alias="Authorization")):
-    key = api_key.replace("Bearer ", "")
+def speak_post(req: SpeakRequest, api_key: str = Header(alias="Authorization")):
+    return _speak(api_key.replace("Bearer ", ""), req.input)
+
+def _speak(key: str, text: str):
     user = get_user(key)
     if not user: raise HTTPException(401, "无效 API Key")
-    chars = len(req.input)
+    chars = len(text)
     if user[2] < chars: raise HTTPException(402, f"字数不足：剩余 {user[2]}，需要 {chars}")
     
     db_exec("UPDATE users SET credits = credits - ? WHERE api_key=?", (chars, key))
@@ -91,7 +98,7 @@ def speak(req: SpeakRequest, api_key: str = Header(alias="Authorization")):
     # Call Mac bridge (returns base64 WAV)
     try:
         r = requests.post("http://127.0.0.1:8899/tts", 
-            json={"text": req.input, "jid": job_id}, timeout=45)
+            json={"text": text, "jid": job_id}, timeout=45)
         if r.status_code == 200:
             import base64, tempfile
             wav = base64.b64decode(r.json()["wav_base64"])
