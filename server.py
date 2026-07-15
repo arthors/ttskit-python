@@ -82,32 +82,33 @@ def speak(req: SpeakRequest, api_key: str = Header(alias="Authorization")):
     chars = len(req.input)
     if user[2] < chars: raise HTTPException(402, f"字数不足：剩余 {user[2]}，需要 {chars}")
     
-    job_id = uuid.uuid4().hex
     db_exec("UPDATE users SET credits = credits - ? WHERE api_key=?", (chars, key))
     db_exec("INSERT INTO usage (api_key, chars, endpoint, created_at) VALUES (?,?,?,?)",
             (key, chars, "speech", datetime.now().isoformat()))
     
-    os.makedirs("/opt/ttskit/jobs", exist_ok=True)
-    os.makedirs("/opt/ttskit/wav", exist_ok=True)
-    with open(f"/opt/ttskit/jobs/{job_id}.job", "w") as f:
-        f.write(req.input)
+    job_id = uuid.uuid4().hex
     
-    return {"job_id": job_id, "status": "queued", "credits_remaining": user[2] - chars}
+    # Call Mac bridge (returns base64 WAV)
+    try:
+        r = requests.post("http://127.0.0.1:8899/tts", 
+            json={"text": req.input, "jid": job_id}, timeout=45)
+        if r.status_code == 200:
+            import base64, tempfile
+            wav = base64.b64decode(r.json()["wav_base64"])
+            f = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+            f.write(wav); f.close()
+            return FileResponse(f.name, media_type="audio/wav",
+                headers={"X-Credits-Remaining": str(user[2] - chars)})
+    except:
+        pass
+    
+    # Refund on failure
+    db_exec("UPDATE users SET credits = credits + ? WHERE api_key=?", (chars, key))
+    raise HTTPException(504, "生成失败，字数已退还")
 
 @app.get("/v1/audio/speech/{job_id}")
 def speak_status(job_id: str):
-    status_path = f"/opt/ttskit/jobs/{job_id}.status"
-    if os.path.exists(status_path):
-        with open(status_path) as f:
-            s = f.read().strip()
-        if s == 'd':
-            wav_path = f"/opt/ttskit/wav/{job_id}.wav"
-            if os.path.exists(wav_path) and os.path.getsize(wav_path) > 100:
-                return FileResponse(wav_path, media_type="audio/wav")
-        if s == 'f': raise HTTPException(500, "生成失败")
-        if s in ('p', 'd'):
-            return {"job_id": job_id, "status": "processing"}
-    raise HTTPException(404, "等待中...")
+    raise HTTPException(404, "请使用新的同步接口")
 
 @app.get("/v1/audio/voices")
 def voices():

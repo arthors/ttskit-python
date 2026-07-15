@@ -169,7 +169,7 @@ async function demoSpeak() {
   const player = document.getElementById('demo-player');
   const text = document.getElementById('demo-text').value;
   
-  btn.disabled = true; status.innerText = '提交中...'; player.style.display = 'none';
+  btn.disabled = true; status.innerText = '生成中...'; player.style.display = 'none';
   
   try {
     const r = await fetch('/v1/audio/speech', {
@@ -177,28 +177,14 @@ async function demoSpeak() {
       body: JSON.stringify({input: text, voice: document.getElementById('demo-voice').value})
     });
     if (!r.ok) throw new Error((await r.json()).detail || '生成失败');
-    const {job_id} = await r.json();
-    status.innerText = '生成中...';
-    // Wait 8s (minimum inference time), then poll every 1.5s
-    await new Promise(ok => setTimeout(ok, 8000));
-    
-    for (let i=0; i<20; i++) {
-      await new Promise(ok => setTimeout(ok, 1500));
-      const pr = await fetch('/v1/audio/speech/'+job_id);
-      if (pr.ok && pr.headers.get('content-type').includes('audio')) {
-        const blob = await pr.blob();
-        player.src = URL.createObjectURL(blob);
-        player.style.display = 'block'; player.play();
-        status.innerText = '✅ 播放中';
-        btn.disabled = false; return;
-      }
-      // 404 = still queued, ignore
-    }
-    throw new Error('超时，请重试');
+    const blob = await r.blob();
+    player.src = URL.createObjectURL(blob);
+    player.style.display = 'block'; player.play();
+    status.innerText = '✅ 播放中';
   } catch(e) {
     status.innerText = '❌ '+e.message;
-    btn.disabled = false;
   }
+  btn.disabled = false;
 }
 </script>
 </body>
