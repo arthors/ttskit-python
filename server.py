@@ -1,7 +1,8 @@
 """TTSKit API Server — async TTS via job polling, doesn't block workers"""
-import os, json, hashlib, time, uuid, sqlite3
+import os, json, hashlib, time, uuid, sqlite3, urllib.parse
+import requests
 from datetime import datetime
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from pydantic import BaseModel
 import uvicorn
@@ -122,6 +123,71 @@ def pricing():
         {"name": "专业", "chars": 500000, "price": 49},
         {"name": "企业", "chars": 2000000, "price": 199},
     ]}
+
+# ---- Payment (ZPAY) ----
+
+ZPAY_PID = ""  # 审核通过后填
+ZPAY_KEY = ""  # 审核通过后填
+ZPAY_CID = "20731"
+ZPAY_API = "https://zpayz.cn/mapi.php"
+
+def zpay_sign(params):
+    """MD5 sign sorted params + key"""
+    keys = sorted(k for k in params if k not in ('sign','sign_type') and params[k] != '')
+    s = '&'.join(f'{k}={params[k]}' for k in keys) + ZPAY_KEY
+    return hashlib.md5(s.encode()).hexdigest()
+
+@app.post("/api/pay/create")
+def pay_create(plan: str = "entry", api_key: str = Header(alias="Authorization")):
+    key = api_key.replace("Bearer ", "")
+    user = get_user(key)
+    if not user: raise HTTPException(401, "无效 API Key")
+    
+    plans = {"entry": ("入门", 9.9, 100000), "pro": ("专业", 49, 500000), "enterprise": ("企业", 199, 2000000)}
+    if plan not in plans: raise HTTPException(400, "无效套餐")
+    name, price, chars = plans[plan]
+    
+    oid = datetime.now().strftime("%Y%m%d%H%M%S") + uuid.uuid4().hex[:8]
+    
+    # Save order
+    db_exec("INSERT INTO orders (api_key, amount_cents, status, created_at) VALUES (?,?,'pending',?)",
+            (key, int(price*100), datetime.now().isoformat()))
+    
+    params = {
+        "pid": ZPAY_PID, "cid": ZPAY_CID, "type": "alipay",
+        "out_trade_no": oid, "notify_url": "https://ttskit.cc/api/pay/notify",
+        "return_url": "https://ttskit.cc", "name": f"TTSKit {name}版 {chars//10000}万字",
+        "money": str(price), "param": f"{key}|{plan}|{chars}",
+        "sign_type": "MD5"
+    }
+    params["sign"] = zpay_sign(params)
+    
+    r = __import__('requests').post(ZPAY_API, data=params, timeout=10)
+    d = r.json()
+    if d.get('code') == 1:
+        return {"pay_url": d.get('payurl') or d.get('qrcode'), "order_id": oid}
+    raise HTTPException(500, d.get('msg', '支付创建失败'))
+
+@app.post("/api/pay/notify")
+async def pay_notify(request: Request):
+    form = await request.form()
+    data = dict(form)
+    
+    # Verify sign
+    sign = data.pop('sign', '')
+    sign_type = data.pop('sign_type', '')
+    if sign != zpay_sign(data):
+        return "sign error"
+    
+    if data.get('trade_status') == 'TRADE_SUCCESS':
+        param = data.get('param', '')
+        parts = param.split('|')
+        if len(parts) == 3:
+            apikey, plan, chars = parts
+            db_exec("UPDATE users SET credits = credits + ? WHERE api_key=?", (int(chars), apikey))
+            db_exec("UPDATE orders SET status='paid' WHERE api_key=? AND status='pending'", (apikey,))
+    
+    return "success"
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
