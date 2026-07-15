@@ -99,14 +99,29 @@ def speak(req: SpeakRequest, api_key: str = Header(alias="Authorization")):
     chars = len(req.input)
     if user[2] < chars:
         raise HTTPException(402, f"字数不足：剩余 {user[2]}，需要 {chars}")
-    # Deduct credits
+    
+    job_id = uuid.uuid4().hex
+    # Write job
     db_exec("UPDATE users SET credits = credits - ? WHERE api_key=?", (chars, key))
     db_exec("INSERT INTO usage (api_key, chars, endpoint, created_at) VALUES (?,?,?,?)",
             (key, chars, "speech", datetime.now().isoformat()))
-    # TTS inference will be added here
-    # For now return placeholder
-    return JSONResponse({"message": f"处理 {chars} 字", "credits_remaining": user[2] - chars},
-                        headers={"X-Credits-Remaining": str(user[2] - chars)})
+    
+    os.makedirs("/opt/ttskit/jobs", exist_ok=True)
+    os.makedirs("/opt/ttskit/wav", exist_ok=True)
+    with open(f"/opt/ttskit/jobs/{job_id}.job", "w") as f:
+        f.write(req.input)
+    
+    # Wait for relay to process (up to 30s)
+    wav_path = f"/opt/ttskit/wav/{job_id}.wav"
+    for _ in range(60):
+        time.sleep(0.5)
+        if os.path.exists(wav_path):
+            return FileResponse(wav_path, media_type="audio/wav",
+                headers={"X-Credits-Remaining": str(user[2] - chars)})
+    
+    # Refund on timeout
+    db_exec("UPDATE users SET credits = credits + ? WHERE api_key=?", (chars, key))
+    raise HTTPException(504, "TTS 生成超时，字数已退还")
 
 @app.get("/v1/audio/voices")
 def voices():
