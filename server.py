@@ -18,15 +18,15 @@ def init_db():
     db.commit(); db.close()
 
 init_db()
-# Create demo user for anonymous web testing
-if not db_exec("SELECT id FROM users WHERE api_key='ttskit-demo'", fetch=True):
-    db_exec("INSERT INTO users (email, password_hash, api_key, credits, created_at) VALUES ('demo@ttskit.cc','demo','ttskit-demo',99999999,'2026-01-01T00:00:00')")
 
 def db_exec(sql, params=(), fetch=False):
     db = sqlite3.connect(DB)
     cur = db.cursor(); cur.execute(sql, params)
     if fetch: rows = cur.fetchall(); db.close(); return rows
     db.commit(); db.close()
+
+# Create demo user for anonymous web testing
+db_exec("INSERT OR IGNORE INTO users (email, password_hash, api_key, credits, created_at) VALUES ('demo@ttskit.cc','demo','ttskit-demo',99999999,'2026-01-01T00:00:00')")
 
 class RegisterRequest(BaseModel):
     email: str; password: str

@@ -179,9 +179,11 @@ async function demoSpeak() {
     if (!r.ok) throw new Error((await r.json()).detail || '生成失败');
     const {job_id} = await r.json();
     status.innerText = '生成中...';
+    // Wait 8s (minimum inference time), then poll every 1.5s
+    await new Promise(ok => setTimeout(ok, 8000));
     
-    for (let i=0; i<40; i++) {
-      await new Promise(ok => setTimeout(ok, 2000));
+    for (let i=0; i<20; i++) {
+      await new Promise(ok => setTimeout(ok, 1500));
       const pr = await fetch('/v1/audio/speech/'+job_id);
       if (pr.ok && pr.headers.get('content-type').includes('audio')) {
         const blob = await pr.blob();
@@ -190,8 +192,9 @@ async function demoSpeak() {
         status.innerText = '✅ 播放中';
         btn.disabled = false; return;
       }
+      // 404 = still queued, ignore
     }
-    throw new Error('超时');
+    throw new Error('超时，请重试');
   } catch(e) {
     status.innerText = '❌ '+e.message;
     btn.disabled = false;

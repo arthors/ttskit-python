@@ -82,7 +82,7 @@ def main():
                                           capture_output=True, timeout=60)
                         if r.returncode == 0:
                             break
-                        time.sleep(2)
+                        time.sleep(1)  # faster polling
                     hk(f"mv {HK_WAV}/{jid}.wav.tmp {HK_WAV}/{jid}.wav && echo d > {HK_JOBS}/{jid}.status")
                     os.unlink(tmp)
                     print(f"[{jid}] DONE")
@@ -94,7 +94,7 @@ def main():
             else:
                 hk(f"echo t > {HK_JOBS}/{jid}.status")
                 print(f"[{jid}] TIMEOUT")
-        time.sleep(2)
+        time.sleep(1)  # faster polling
 
 if __name__ == "__main__":
     main()
